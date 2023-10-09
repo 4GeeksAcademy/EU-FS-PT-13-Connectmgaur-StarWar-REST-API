@@ -1,0 +1,29 @@
+image:
+  file: .gitpod.Dockerfile
+ports:
+    - port: 3000
+      onOpen: open-preview
+    - port: 3306
+      onOpen: ignore
+tasks:
+    - init: |
+        set -x;
+        cp .env.example .env;
+        pipenv install;
+        mysql -u root -e "CREATE DATABASE example";
+        pipenv run init;
+        pipenv run migrate;
+        pipenv run upgrade;
+        set +x;
+      command: >
+        set -x;
+        pipenv run start;
+        set +x;
+    - command: python3 welcome.py
+      openMode: split-right
+
+github:
+  prebuilds:
+    # enable for the master/default branch (defaults to true)
+    master: false
+    gitpod-test: true
