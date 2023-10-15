@@ -51,3 +51,23 @@ class People(db.Model):
             "uid": self.external_uid,
             # do not serialize the password, its a security breach
         }
+class Favorites(db.Model):    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    type = db.Column(db.String(120), nullable=False)
+    fave_id = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(120), nullable=False)
+    url = db.Column(db.String(120), nullable=False)
+
+    def __repr__(self):
+        return '<Favorites %r>' % self.name
+    
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "type": self.type,
+            "fave_id": self.fave_id,
+            "name": self.name,
+            "url": self.url,
+        }
