@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Planet, People
+from models import db, User, Planet, People, Favorites
 import requests 
 import json
 #from models import Person
@@ -59,6 +59,24 @@ def import_planet():
 
     return jsonify({"msg": "All the people was added"}), 200
 
+@app.route("/planets/<int:id_recieved>", methods=['GET'])
+
+
+def get_single_planet(id_recieved):
+    body = request.get_json() #{ 'username': 'new_username'}
+    if request.method == 'PUT':
+        user1 = Planet.query.get(id_recieved)
+        user1.username = body.username
+        db.session.commit()
+        return jsonify(user1.serialize()), 200
+    if request.method == 'GET':
+        user1 = Planet.query.get(id_recieved)
+        return jsonify(user1.serialize()), 200
+
+    return "Invalid Method", 404
+
+
+
 
 @app.route('/people')
 def import_people():
@@ -81,19 +99,19 @@ def import_people():
     return jsonify({"msg": "All the people was added"}), 200
 
 
-@app.route('/people/<int:people_id>', methods=['PUT', 'GET'])
-def get_single_person(people_id):
+@app.route('/people/<int:id_recieved>', methods=['PUT', 'GET'])
+def get_single_person(id_recieved):
     """
     Single person
     """
     body = request.get_json() #{ 'username': 'new_username'}
     if request.method == 'PUT':
-        user1 = People.query.get(people_id)
+        user1 = People.query.get(id_recieved)
         user1.username = body.username
         db.session.commit()
         return jsonify(user1.serialize()), 200
     if request.method == 'GET':
-        user1 = People.query.get(people_id)
+        user1 = People.query.get(id_recieved)
         return jsonify(user1.serialize()), 200
 
     return "Invalid Method", 404
@@ -107,6 +125,64 @@ def handle_hello():
     }
 
     return jsonify(response_body), 200
+
+# FAVORITES HERE...
+
+@app.route("/users/favorites", methods=['GET'])
+def handle_user_faves():
+    faves = Favorites.query.all()
+    return jsonify([f.serialize() for f in faves]), 200
+
+@app.route("/favorite/people/<int:id_recieved>", methods=['POST'])
+def add_fave_person(id_recieved):
+    request_body = request.get_json()
+    user = User.query.filter_by(is_active=True).first() #sets user to active user to be saved into favorite
+    new_fave = Favorites(type="people", name=request_body["name"], fave_id=id_recieved, url=request_body["url"], user_id=user.id)
+    db.session.add(new_fave)
+    db.session.commit()
+    return f"Added favorite with id: {id_recieved}"
+
+# EXAMPLE JSON FOR ABOVE:
+# {
+#     "name": "TestName",
+#     "url": "TestURL"
+# }
+
+@app.route("/favorite/planet/<int:id_recieved>", methods=['POST'])
+def add_fave_planet(id_recieved):
+    request_body = request.get_json()
+    user = User.query.filter_by(is_active=True).first() #sets user to active user to be saved into favorite
+    new_fave = Favorites(type="planet", name=request_body["name"], fave_id=id_recieved, url=request_body["url"], user_id=user.id)
+    db.session.add(new_fave)
+    db.session.commit()
+    return f"Added favorite with id: {id_recieved}"
+
+
+# DELETE
+
+
+@app.route("/favorite/people/<int:id_recieved>", methods=['DELETE'])
+def del_fave_person(id_recieved):
+    to_delete = Favorites.query.filter_by(type="people", fave_id=id_recieved).first()
+    print(to_delete)
+    if to_delete:
+        db.session.delete(to_delete)
+        db.session.commit()
+        return f"Deleted favorite person with id: {id_recieved}"
+    else:
+        return f"Item doesnt exist to delete!"
+    
+@app.route("/favorite/planet/<int:id_recieved>", methods=['DELETE'])
+def del_fave_planet(id_recieved):
+    to_delete = Favorites.query.filter_by(type="planet", fave_id=id_recieved).first()
+    if to_delete:
+        db.session.delete(to_delete)
+        db.session.commit()
+        return f"Deleted favorite planet with id: {id_recieved}"  
+    else:
+        return f"Item doesnt exist to delete!"
+
+
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
