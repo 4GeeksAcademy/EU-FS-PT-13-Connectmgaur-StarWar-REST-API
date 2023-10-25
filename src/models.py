@@ -2,111 +2,125 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-class User(db.Model):
-    __tablename__ = 'users'
+##################################################################################
+    
+class Planets(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(120), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    diameter = db.Column(db.Integer)
+    rotation_period = db.Column(db.Integer)
+    gravity = db.Column(db.String(50))
+    population = db.Column(db.Integer)
+    climate = db.Column(db.String(50))
+    terrain = db.Column(db.String(50))
+    surface_water = db.Column(db.Integer)
+#     fav_planet = Column(Integer, ForeignKey('fav_planets.id'))
+#     fav_planet_relationship = relationship("Fav_planets", uselist=False)
 
-    planet = db.relationship("Planet", lazy='subquery', secondary="favourite_planets")
-    character = db.relationship("Character", lazy='subquery', secondary="favourite_characters")
 
     def __repr__(self):
-        return f"User(username={self.username}, id={self.id}"
+        return '<Planets %r>' % self.id
 
     def serialize(self):
         return {
             "id": self.id,
-            "username": self.username,
-            "email": self.email
-        }
-
-class Character(db.Model):
-    __tablename__ = 'characters'
-    # Reference: https://flask-sqlalchemy.palletsprojects.com/en/2.x/models/
-    id = db.Column(db.Integer, primary_key=True)
-    external_uid = db.Column(db.String(120), nullable=True)
-    name = db.Column(db.String(120), nullable=True)
-    birth_year = db.Column(db.String(120), nullable=True)
-    height = db.Column(db.Integer, nullable=True)
-
-    user = db.relationship("User", lazy='subquery', secondary="favourite_characters")
-
-    def __repr__(self):
-        return f"Character(name={self.name}, id={self.id})"
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "uid": self.external_uid,
             "name": self.name,
-            "birth_year": self.birth_year,
-            "height": self.height
-        }
-    
-class FavouriteCharacter(db.Model):
-    __tablename__ = 'favourite_characters'
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    character_id = db.Column(db.Integer, db.ForeignKey('characters.id'))
-
-    user = db.relationship(User, lazy='subquery', backref=db.backref("favourite_characters", cascade="all, delete-orphan"))
-    character = db.relationship(Character, lazy='subquery', backref=db.backref("favourite_characters", cascade="all, delete-orphan"))
-
-    def __repr__(self):
-        return f"FavouriteCharacter(user_id={self.user_id}, planet_id={self.character_id})"
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "character_id": self.character_id,  
-        }
-    
-    
-class Planet(db.Model):
-    __tablename__ = 'planets'
-    # Reference: https://flask-sqlalchemy.palletsprojects.com/en/2.x/models/
-    id = db.Column(db.Integer, primary_key=True)
-    external_uid = db.Column(db.String(120), nullable=True)
-    name = db.Column(db.String(120), nullable=True)
-    climate = db.Column(db.String(120), nullable=True)
-    rotation_period = db.Column(db.String(120), nullable=True)
-    orbital_period = db.Column(db.String(120), nullable=True)
-
-    user = db.relationship("User", lazy='subquery', secondary="favourite_planets")
-
-    def __repr__(self):
-        return f"Planet(name={self.name}, id={self.id})"
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "uid": self.external_uid,
-            "name": self.name,
-            "climate": self.climate,
+            "diameter": self.diameter,
             "rotation_period": self.rotation_period,
-            "orbital_period": self.orbital_period
+            "gravity": self.gravity,
+            "population": self.population,
+            "climate": self.climate,
+            "terrain": self.terrain,
+            "surface_water": self.surface_water,
         }
-    
-class FavouritePlanet(db.Model):
-    __tablename__ = 'favourite_planets'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    planet_id = db.Column(db.Integer, db.ForeignKey('planets.id'))
 
-    user = db.relationship(User, lazy='subquery', backref=db.backref("favourite_planets", cascade="all, delete-orphan"))
-    planet = db.relationship(Planet, lazy='subquery', backref=db.backref("favourite_planets", cascade="all, delete-orphan"))
+class Characters(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+    mass = db.Column(db.Integer)
+    height = db.Column(db.Integer)
+    hair_color = db.Column(db.String(50))
+    skin_color = db.Column(db.String(50))
+    eye_color = db.Column(db.String(50))
+    birth_year = db.Column(db.String(50))
+    gender = db.Column(db.String(50))
+    planet = db.Column(db.Integer, db.ForeignKey('planets.id'))
+    planet_relationship = db.relationship(Planets)
+   
+#     fav_character = Column(Integer, ForeignKey('fav_characters.id'))
+#     fav_character_relationship = relationship("Fav_Characters", uselist=False)
+
 
     def __repr__(self):
-        return f"FavouritePlanet(user_id={self.user_id}, planet_id={self.planet_id})"
+        return '<Character %r>' % self.id
 
     def serialize(self):
         return {
             "id": self.id,
-            "user_id": self.user_id,
-            "planet_id": self.planet_id,  
+            "name": self.name,
+            "mass": self.mass,
+            "height": self.height,
+            "hair_color": self.hair_color,
+            "skin_color": self.skin_color,
+            "eye_color": self.eye_color,
+            "birth_year": self.birth_year,
+            "gender": self.gender,
+            "planet": self.planet,
+            
         }
     
+############################ USERS ####################################################
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(80), unique=False, nullable=False)
+    is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+
+    def __repr__(self):
+        return '<User %r>' % self.id
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "email": self.email,
+            # do not serialize the password, its a security breach
+        }
+    
+############################## FAVS ####################################################
+
+class Fav_Planets(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    planet = db.Column(db.Integer, db.ForeignKey('planets.id'))
+    planet_relationship = db.relationship(Planets)
+    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_relationship = db.relationship(User)
+
+    def __repr__(self):
+        return '<Fav_Planets %r>' % self.id
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "planet": self.planet,
+            "user": self.user,
+        }
+    
+
+class Fav_Characters(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    character = db.Column(db.Integer, db.ForeignKey('characters.id'))
+    character_relationship = db.relationship(Characters)
+    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_relationship = db.relationship(User)
+
+    def __repr__(self):
+        return '<Fav_Characters %r>' % self.id
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "character": self.character,
+            "user": self.user,
+        }
     
